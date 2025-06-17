@@ -1,4 +1,11 @@
 import requests
+from environs import env
+
+env.read_env()
+
+CLIENT_ID = env.str("CLIENT_ID")
+CLIENT_SECRET = env.str("CLIENT_SECRET")
+TOKEN_URL = env.str("TOKEN_URL")
 
 def get_acess_token(client_id: str, client_secret: str, token_url: str) -> str:
     payload = {
