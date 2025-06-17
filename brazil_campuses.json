@@ -1,0 +1,86 @@
+[
+    {
+        "id": 61,
+        "name": "Belo Horizonte",
+        "time_zone": "America/Sao_Paulo",
+        "language": {
+            "id": 17,
+            "name": "Brazilian Portuguese",
+            "identifier": "pt_br"
+        },
+        "users_count": 12,
+        "vogsphere_id": null,
+        "country": "Brazil",
+        "address": "- No address yet -",
+        "zip": "30000",
+        "city": "Belo Horizonte",
+        "website": "https://42bh.org.br",
+        "facebook": "",
+        "twitter": "",
+        "active": true,
+        "public": true,
+        "email_extension": "42bh.org.br",
+        "default_hidden_phone": false,
+        "endpoint": null
+    },
+    {
+        "id": 28,
+        "name": "Rio de Janeiro",
+        "time_zone": "America/Sao_Paulo",
+        "language": {
+            "id": 17,
+            "name": "Brazilian Portuguese",
+            "identifier": "pt_br"
+        },
+        "users_count": 1202,
+        "vogsphere_id": 40,
+        "country": "Brazil",
+        "address": " Rua Marquês de Sapucaí, 200 / 12th floor",
+        "zip": "20210-912",
+        "city": "Rio de Janeiro",
+        "website": "https://42.rio",
+        "facebook": "",
+        "twitter": "@Escola42Rio",
+        "active": true,
+        "public": true,
+        "email_extension": "42.rio",
+        "default_hidden_phone": false,
+        "endpoint": {
+            "id": 38,
+            "url": "https://endpoint.42.rio:4000/",
+            "description": "42 Rio endpoint",
+            "created_at": "2021-10-26T19:23:55.571Z",
+            "updated_at": "2025-01-02T13:45:09.335Z"
+        }
+    },
+    {
+        "id": 20,
+        "name": "São-Paulo",
+        "time_zone": "America/Sao_Paulo",
+        "language": {
+            "id": 17,
+            "name": "Brazilian Portuguese",
+            "identifier": "pt_br"
+        },
+        "users_count": 5409,
+        "vogsphere_id": 14,
+        "country": "Brazil",
+        "address": "Rua Aspicuelta, 422, cj. 71A",
+        "zip": "05433-010",
+        "city": "São Paulo",
+        "website": "https://42sp.org.br",
+        "facebook": "",
+        "twitter": "",
+        "active": true,
+        "public": true,
+        "email_extension": "42sp.org.br",
+        "default_hidden_phone": false,
+        "endpoint": {
+            "id": 13,
+            "url": "https://endpoint.42sp.org.br",
+            "description": "Endpoint São Paulo",
+            "created_at": "2019-07-08T19:37:49.661Z",
+            "updated_at": "2024-05-04T14:25:38.004Z"
+        }
+    }
+]
