@@ -22,7 +22,7 @@ CLIENT_SECRET = env.str("CLIENT_SECRET")
 TOKEN_URL = env.str("TOKEN_URL")
 
 BASE_DIR = Path(__file__).parent.parent.resolve()
-DATA_DIR = BASE_DIR / "const_data"
+DATA_DIR = BASE_DIR / "data"
 
 if __name__ == '__main__':
     access_token = get_acess_token(
