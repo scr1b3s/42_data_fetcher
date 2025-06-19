@@ -21,7 +21,17 @@ def gets_pages(
     request_url: str,
     params: dict,
 ) -> int | None:
-    
+    """
+    Fetches the number of pages on a given resource, taking into account the number of rows requested in the param.
+
+    Args:
+        access_token: The Bearer credential that's going to be sent w/ the Authorization Header.
+        request_url: The URL for the request we're going to make... Probably a GET type.
+        params: Requests' params that's going to be used in the arguments.
+
+    Returns:
+        The number of pages that'll need to be tranversed to fetch all the data we want.
+    """
     headers = {
         "Authorization": f"Bearer {access_token}"
     }
