@@ -39,7 +39,38 @@ class DF_Client:
         self._expires_at = None
 
         self._fetch_token()
+    
+    @property
+    def token(self) -> str:
+        """
+        The current access token (auto-refreshes if expired).
+        
+        Example:
+            >>> client = DF_Client(...)
+            >>> print(client.token)  # Auto-refreshes if needed
+        """
+        return self.get_token()
+    
+    def get_token(self) -> str:
+        """
+        Retrieves a valid access token, automatically refreshing if expired.
 
+        Returns:
+            str: The current valid access token.
+
+        Note:
+            Prints a message to stdout when refreshing expired tokens. In production,
+            consider using logging instead.
+
+        Example:
+            >>> client = DF_Client("id", "secret", "https://api.example.com/token")
+            >>> token = client.get_token()  # Gets token, auto-refreshes if needed
+        """
+        if not self._token_data or time.time() >= self._expires_at:
+            print("Token expired. Refreshing...")
+            self._fetch_token()
+        return self._token_data["token"]
+    
     def _fetch_token(self) -> None:
         """
         Fetches a new access token from the OAuth2 server and stores it.
@@ -69,23 +100,3 @@ class DF_Client:
         }
 
         self._expires_at = time.time() + token_info["expires_in"]
-    
-    def get_token(self) -> str:
-        """
-        Retrieves a valid access token, automatically refreshing if expired.
-
-        Returns:
-            str: The current valid access token.
-
-        Note:
-            Prints a message to stdout when refreshing expired tokens. In production,
-            consider using logging instead.
-
-        Example:
-            >>> client = DF_Client("id", "secret", "https://api.example.com/token")
-            >>> token = client.get_token()  # Gets token, auto-refreshes if needed
-        """
-        if not self._token_data or time.time() >= self._expires_at:
-            print("Token expired. Refreshing...")
-            self._fetch_token()
-        return self._token_data["token"]

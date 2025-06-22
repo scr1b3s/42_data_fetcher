@@ -33,11 +33,11 @@ if __name__ == '__main__':
     )
 
     cursus_data = get_all_cursus(
-        client.get_token()
+        client.token
     )
 
     rio_data = get_campus(
-        client.get_token()
+        client.token
     )
 
     with open(f'{DATA_DIR}/cursus_data.json', 'w', encoding='utf-8') as f:
