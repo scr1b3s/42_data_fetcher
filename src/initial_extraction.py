@@ -12,7 +12,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
 
 import json
-from helpers.utils import get_all_cursus, get_campus, get_acess_token
+from helpers.utils import get_all_cursus, get_campus
+from DF_Client import DF_Client
 from environs import env
 
 env.read_env()
@@ -25,18 +26,18 @@ BASE_DIR = Path(__file__).parent.parent.resolve()
 DATA_DIR = BASE_DIR / "data"
 
 if __name__ == '__main__':
-    access_token = get_acess_token(
+    client = DF_Client(
         CLIENT_ID,
         CLIENT_SECRET,
         TOKEN_URL
     )
 
     cursus_data = get_all_cursus(
-        access_token,
+        client.get_token()
     )
 
     rio_data = get_campus(
-        access_token
+        client.get_token()
     )
 
     with open(f'{DATA_DIR}/cursus_data.json', 'w', encoding='utf-8') as f:
