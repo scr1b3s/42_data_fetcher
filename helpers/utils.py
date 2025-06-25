@@ -6,6 +6,14 @@ import requests
 import time
 import re
 
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+
 def wait() -> None:
     """
     Waits a second.
@@ -13,22 +21,6 @@ def wait() -> None:
     Since the API has a wait period, every request we make needs to wait a little. It would get tedious real quick to type "sleep" or "time.sleep(1)"
     """
     time.sleep(1)
-
-def get_acess_token(client_id: str, client_secret: str, token_url: str) -> str:
-    payload = {
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret,
-    }
-
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-    response = requests.post(token_url, data=payload, headers=headers)
-
-    response.raise_for_status()
-
-    data = response.json()
-    return data["access_token"]
 
 def gets_pages(
     access_token: str,
@@ -46,6 +38,7 @@ def gets_pages(
     Returns:
         last_page: The last page, as a integer, corresponding to the total amount of pages needed to be transversed.
     """
+    logger = logging.getLogger(__name__)
     headers = {"Authorization": f"Bearer {access_token}"}
 
     response = requests.get(request_url, headers=headers, params=params)
@@ -58,11 +51,11 @@ def gets_pages(
         match = re.search(r'page=(\d+)&per_page=\d+>; rel="last"', link_header)
         if match:
             last_page = int(match.group(1))
-            print(f"I've found {last_page} pages!")
+            logger.info(f"I've found {last_page} pages!")
         else:
-            print("No pages, just the one.")
+            logger.info("No pages, just the one.")
     else:
-        print("No Link header, assuming only one page.")
+        logger.warning("No Link header, assuming only one page.")
 
     wait()
 
@@ -83,6 +76,7 @@ def get_all_cursus(
     Returns:
         A list of dictionaries corresponding to the cursus data for all the cursus from 42.
     """
+    logger = logging.getLogger(__name__)
     headers = {"Authorization": f"Bearer {access_token}"}
 
     start_page = 1
@@ -100,12 +94,14 @@ def get_all_cursus(
     total_data = []
 
     if start_page == total_pages:
+        logger.info(f"Extracting data from Cursus.")
         response = requests.get("https://api.intra.42.fr/v2/cursus", headers=headers)
         response.raise_for_status()
         total_data.append(response.json())
 
     else:
         while params["page"]["number"] < total_pages:
+            logger.info(f"Extracting data from Cursus, page {params['page']['number']}.")
             response = requests.get(
                 "https://api.intra.42.fr/v2/cursus", headers=headers
             )
@@ -120,6 +116,7 @@ def get_all_cursus(
 
 def get_campus(
     access_token: str,
+    city_filter: str,
 ) -> dict:
     """
     Makes a request to the École 42 API to get 42 Rio's campus data.
@@ -130,11 +127,13 @@ def get_campus(
     Returns:
         A dictionary corresponding to Rio's campus data.    
     """
+    logger = logging.getLogger(__name__)
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {
-        'filter[city]': "Rio de Janeiro"
+        'filter[city]': city_filter
     }
 
+    logger.info(f"Extracting {city_filter} Campus Data...")
     response = requests.get(
         f"https://api.intra.42.fr/v2/campus", headers=headers, params=params
     )

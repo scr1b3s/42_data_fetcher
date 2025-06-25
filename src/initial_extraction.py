@@ -37,7 +37,8 @@ if __name__ == '__main__':
     )
 
     rio_data = get_campus(
-        client.token
+        client.token,
+        "Rio de Janeiro"
     )
 
     with open(f'{DATA_DIR}/cursus_data.json', 'w', encoding='utf-8') as f:

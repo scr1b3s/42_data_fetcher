@@ -1,5 +1,11 @@
+import logging
 import requests
 import time
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 class DF_Client:
     """
@@ -18,7 +24,7 @@ class DF_Client:
                 "token": str,  # The access token
                 "metadata": dict  # Full token response from server
             }
-        _expires_at (float|None): Unix timestamp when the current token expires.
+        _expires_in (float|None): Unix timestamp when the current token expires.
     """
     def __init__(self, client_id, client_secret, token_url):
         """
@@ -36,8 +42,10 @@ class DF_Client:
         self._client_secret = client_secret
         self._token_url = token_url
         self._token_data = None
-        self._expires_at = None
+        self._expires_in = None
+        self._logger = logging.getLogger(__name__)
 
+        self._logger.info("Initializing DF_Client...")
         self._fetch_token()
     
     @property
@@ -66,8 +74,8 @@ class DF_Client:
             >>> client = DF_Client("id", "secret", "https://api.example.com/token")
             >>> token = client.get_token()  # Gets token, auto-refreshes if needed
         """
-        if not self._token_data or time.time() >= self._expires_at:
-            print("Token expired. Refreshing...")
+        if not self._token_data or time.time() >= self._expires_in:
+            self._logger.warning("Token expired or missing. Refreshing...")
             self._fetch_token()
         return self._token_data["token"]
     
@@ -82,21 +90,29 @@ class DF_Client:
             requests.HTTPError: If the token request fails (4xx/5xx status).
             ValueError: If the token response is malformed.
         """
-        payload = {
-            "grant_type": "client_credentials",
-            "client_id": self._client_id,
-            "client_secret": self._client_secret,
-        }
+        try:
+            payload = {
+                "grant_type": "client_credentials",
+                "client_id": self._client_id,
+                "client_secret": self._client_secret,
+            }
 
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        response = requests.post(self._token_url, data=payload, headers=headers)
-        response.raise_for_status()
+            self._logger.debug(f"Requesting new token from {self._token_url}")
+            response = requests.post(self._token_url, data=payload, headers=headers)
+            response.raise_for_status()
 
-        token_info = response.json()
-        self._token_data = {
-            "token": token_info["access_token"],
-            "metadata": token_info
-        }
+            token_info = response.json()
+            self._token_data = {
+                "token": token_info["access_token"],
+                "metadata": token_info
+            }
 
-        self._expires_at = time.time() + token_info["expires_in"]
+            self._expires_in = time.time() + token_info["expires_in"]
+            self._logger.info("Successfully fetched new token. "
+                            f"Expires in {token_info["expires_in"]} seconds.")
+        except requests.RequestException as e:
+            self._logger.error(f"Token fetch failed: {str(e)}", exc_info=True)
+            raise
+        
