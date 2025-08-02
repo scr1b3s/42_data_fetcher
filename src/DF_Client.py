@@ -1,11 +1,24 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.parent.resolve()))
+
 import logging
 import requests
 import time
+
+from environs import env
+
+env.read_env()
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+
+CLIENT_ID = env.str("CLIENT_ID")
+CLIENT_SECRET = env.str("CLIENT_SECRET")
+TOKEN_URL = env.str("TOKEN_URL")
 
 class DF_Client:
     """
@@ -26,7 +39,7 @@ class DF_Client:
             }
         _expires_in (float|None): Unix timestamp when the current token expires.
     """
-    def __init__(self, client_id, client_secret, token_url):
+    def __init__(self):
         """
         Initializes the client and fetches the first access token.
 
@@ -38,9 +51,9 @@ class DF_Client:
         Raises:
             requests.HTTPError: If the initial token request fails.
         """
-        self._client_id = client_id
-        self._client_secret = client_secret
-        self._token_url = token_url
+        self._client_id = CLIENT_ID
+        self._client_secret = CLIENT_SECRET
+        self._token_url = TOKEN_URL
         self._token_data = None
         self._expires_in = None
         self._logger = logging.getLogger(__name__)

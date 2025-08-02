@@ -18,19 +18,11 @@ from environs import env
 
 env.read_env()
 
-CLIENT_ID = env.str("CLIENT_ID")
-CLIENT_SECRET = env.str("CLIENT_SECRET")
-TOKEN_URL = env.str("TOKEN_URL")
-
 BASE_DIR = Path(__file__).parent.parent.resolve()
 DATA_DIR = BASE_DIR / "data"
 
 if __name__ == '__main__':
-    client = DF_Client(
-        CLIENT_ID,
-        CLIENT_SECRET,
-        TOKEN_URL
-    )
+    client = DF_Client()
 
     cursus_data = get_all_cursus(
         client.token
