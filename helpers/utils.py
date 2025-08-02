@@ -9,8 +9,7 @@ import re
 import logging
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 from environs import env
@@ -19,6 +18,7 @@ env.read_env()
 
 REQ_URL = env.str("REQ_URL")
 
+
 def wait() -> None:
     """
     Waits a second.
@@ -26,6 +26,7 @@ def wait() -> None:
     Since the API has a wait period, every request we make needs to wait a little. It would get tedious real quick to type "sleep" or "time.sleep(1)"
     """
     time.sleep(1)
+
 
 def gets_pages(
     access_token: str,
@@ -43,7 +44,7 @@ def gets_pages(
     Returns:
         last_page: The last page, as a integer, corresponding to the total amount of pages needed to be transversed.
     """
-    logger = logging.getLogger(name = "GET_PAGES")
+    logger = logging.getLogger(name="GET_PAGES")
     headers = {"Authorization": f"Bearer {access_token}"}
 
     response = requests.get(request_url, headers=headers, params=params)
@@ -60,7 +61,9 @@ def gets_pages(
             last_page = int(match.group(1))
             logger.info(f"I've found {last_page} pages!")
         else:
-            logger.info("No 'last' relation found in Link header, assuming single page.")
+            logger.info(
+                "No 'last' relation found in Link header, assuming single page."
+            )
             last_page = 1
     else:
         logger.warning("No Link header, assuming only one page.")
@@ -71,17 +74,14 @@ def gets_pages(
     return last_page
 
 
-def get_all_cursus(
-    access_token: str,
-    per_page: int = 100
-) -> list:
+def get_all_cursus(access_token: str, per_page: int = 100) -> list:
     """
     Makes a series of requests to École 42's API using gets_pages to determine the last page, with the objetive of transversing all cursus' data.
 
     Args:
         access_token: Access token to be used in Authorization Header.
         per_page: Number of lines to format the data, defaults to 100, the maximum number of lines.
-    
+
     Returns:
         A list of dictionaries corresponding to the cursus data for all the cursus from 42.
     """
@@ -91,32 +91,30 @@ def get_all_cursus(
     start_page = 1
 
     params = {
-        "page": {
-            "number": start_page,
-        },
-        "per_page": per_page,
+        "page[number]": start_page,
+        "page[size]": per_page,
     }
 
     last_page = gets_pages(access_token, f"{REQ_URL}cursus", params)
-    total_pages = last_page if last_page else 1
+    total_pages = last_page if last_page != 1 else 1
 
     total_data = []
 
     if start_page == total_pages:
         logger.info(f"Extracting data from Cursus.")
-        response = requests.get(f"{REQ_URL}cursus", headers=headers)
+        response = requests.get(f"{REQ_URL}cursus", headers=headers, params=params)
         response.raise_for_status()
         total_data.append(response.json())
 
     else:
-        while params["page"]["number"] <= total_pages:
-            logger.info(f"Extracting data from Cursus, page {params['page']['number']}.")
-            response = requests.get(
-                f"{REQ_URL}cursus", headers=headers
+        while params["page[number]"] <= total_pages:
+            logger.info(
+                f"Extracting data from Cursus, page {params["page[number]"]}."
             )
+            response = requests.get(f"{REQ_URL}cursus", headers=headers, params=params)
             response.raise_for_status()
             total_data.append(response.json())
-            params["page"]["number"] += 1
+            params["page[number]"] += 1
             wait()
 
     flat_data = [item for sublist in total_data for item in sublist]
@@ -132,20 +130,16 @@ def get_campus(
 
     Args:
         access_token: Access token to be used in the Authorization Header.
-    
+
     Returns:
-        A dictionary corresponding to Rio's campus data.    
+        A dictionary corresponding to Rio's campus data.
     """
     logger = logging.getLogger(__name__)
     headers = {"Authorization": f"Bearer {access_token}"}
-    params = {
-        'filter[city]': city_filter
-    }
+    params = {"filter[city]": city_filter}
 
     logger.info(f"Extracting {city_filter} Campus Data...")
-    response = requests.get(
-        f"{REQ_URL}campus", headers=headers, params=params
-    )
+    response = requests.get(f"{REQ_URL}campus", headers=headers, params=params)
 
     response.raise_for_status()
     response = response.json()
@@ -153,27 +147,37 @@ def get_campus(
 
     return response
 
-def get_students_filter(
-        access_token: str, 
-        **kwargs
-) -> list:
+def get_students_filter(access_token: str, **kwargs) -> list:
+    """
+    Fetches and filters student user data from École 42's API, with pagination support.
+
+    Args:
+        access_token (str): The Bearer token used for API authentication.
+        **kwargs: Arbitrary keyword arguments to be used as filters in the API request.
+            Each key-value pair is added as a filter parameter if the value is not None.
+
+    Returns:
+        list: A flattened list containing the user data retrieved from all relevant pages.
+
+    Raises:
+        requests.HTTPError: If any of the API requests fail.
+
+    Logs:
+        - The final parameters sent to the API.
+        - The extraction process for each page.
+    """
     logger = logging.getLogger(name="STUDENTS_EXTRACTION")
-    headers = { "Authorization": f"Bearer {access_token}" }
+    headers = {"Authorization": f"Bearer {access_token}"}
     start_page = 1
 
-    params = {
-        "page[number]": start_page,
-        "page[size]": 100
-    }
+    params = {"page[number]": start_page, "page[size]": 100}
 
     for key, value in kwargs.items():
         if value is not None:
             params[f"filter[{key}]"] = value
 
-    logger.info(f"Final params being sent: {params}.")
-
     last_page = gets_pages(access_token, f"{REQ_URL}users", params)
-    total_pages = last_page if last_page else 1
+    total_pages = last_page if last_page != 1 else 1
 
     total_data = []
 
@@ -185,10 +189,47 @@ def get_students_filter(
 
     else:
         while params["page[number]"] <= total_pages:
-            logger.info(f"Extracting data from Users, page {params["page[number]"]}...")
-            response = requests.get(
-                f"{REQ_URL}users", headers=headers, params=params
-            )
+            logger.info(f"Extracting data from Users, page {params['page[number]']}...")
+            response = requests.get(f"{REQ_URL}users", headers=headers, params=params)
+            response.raise_for_status()
+            total_data.append(response.json())
+            params["page[number]"] += 1
+            wait()
+
+    flat_data = [item for sublist in total_data for item in sublist]
+    return flat_data
+
+def get_project_users_filter(
+        access_token: str,
+        user_data: int,
+        **kwargs
+):
+    logger = logging.getLogger(name="PROJECT_USERS_EXTRACTION")
+    headers = {"Authorization": f"Bearer {access_token}"}
+    start_page = 1
+
+    params = {"page[number]": start_page, "page[size]": 100}
+
+    for key, value in kwargs.items():
+        if value is not None:
+            params[f"filter[{key}]"] = value
+
+    total_data = []
+    user_id = user_data['id']
+
+    last_page = gets_pages(access_token, f"{REQ_URL}users/{user_id}/projects_users", params)
+    total_pages = last_page if last_page != 1 else 1
+
+    if start_page == total_pages:
+        logger.info(f"Extracting Project User data from: {user_data['displayname']} aka: {user_data['login']}...")
+        response = requests.get(f"{REQ_URL}users/{user_id}/projects_users", headers=headers, params=params)
+        response.raise_for_status()
+        total_data.append(response.json())
+
+    else:
+        while params["page[number]"] <= total_pages:
+            logger.info(f"Extracting Project User data from: {user_data['displayname']} aka: {user_data['login']}, page {params['page[number]']}...")
+            response = requests.get(f"{REQ_URL}users/{user_id}/projects_users", headers=headers, params=params)
             response.raise_for_status()
             total_data.append(response.json())
             params["page[number]"] += 1
@@ -208,14 +249,12 @@ def get_all_students_by_cursus(
         "filter[user_id]": user_id,
     }
 
-    response = requests.get(
-        f"{REQ_URL}cursus_users", headers=headers, params=params
-    )
+    response = requests.get(f"{REQ_URL}cursus_users", headers=headers, params=params)
     response.raise_for_status()
     with open("students.json", "w", encoding="utf-8") as f:
         import json
-
         json.dump(response.json(), f, ensure_ascii=False, indent=4)
+    
     return response.json()
 
 
@@ -223,9 +262,7 @@ def get_campus_users(access_token: str, user_id: int) -> list:
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {"page[size]": 1000, "filter[user_id]": user_id}
 
-    response = requests.get(
-        f"{REQ_URL}campus_users", headers=headers, params=params
-    )
+    response = requests.get(f"{REQ_URL}campus_users", headers=headers, params=params)
     response.raise_for_status()
     return response.json()
 
@@ -234,8 +271,6 @@ def get_projects_by_user(access_token: str, user_id: int) -> list:
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {"filter[user_id]": user_id, "page[size]": 1000}
 
-    response = requests.get(
-        f"{REQ_URL}projects_users", headers=headers, params=params
-    )
+    response = requests.get(f"{REQ_URL}projects_users", headers=headers, params=params)
     response.raise_for_status()
     return response.json()
