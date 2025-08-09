@@ -16,16 +16,22 @@ def initial_extraction():
     logger = logging.getLogger("INITIAL_EXTRACTION")
     extractor = FT_Extractor()
 
-    logger.info("Initiating Initial Extraction: Campus, and Cursus...")
+    logger.info(
+        "Initiating Initial Extraction: Campus, Cursus and Projects for Cursus..."
+    )
 
     campus_data = extractor.basic_extraction("campus", **FILTERS["campus"])
     cursus_data = extractor.basic_extraction(
         "cursus",
     )
 
-    extractor.set_json("campus_data", campus_data)
+    projects_data = extractor.filtered_extraction(
+        "projects", "cursus/{cursus_id}/projects", {"cursus_id": 9}
+    )
 
+    extractor.set_json("campus_data", campus_data)
     extractor.set_json("cursus_data", cursus_data)
+    extractor.set_json("c_piscine_projects", projects_data)
 
 
 if __name__ == "__main__":

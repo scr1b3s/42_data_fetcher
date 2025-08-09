@@ -9,6 +9,7 @@ import requests
 import time
 import json
 from FT_Client import FT_Client
+from typing import Any
 
 from environs import env
 
@@ -28,6 +29,7 @@ class FT_Extractor(FT_Client):
 
         self._base_url = REQ_URL
         self._extractor_logger = logging.getLogger("FT_Extractor")
+        self._logger.info("Initializing FT_Extractor...")
 
     def get_pages(
         self,
@@ -97,6 +99,68 @@ class FT_Extractor(FT_Client):
                 params["page[number]"] += 1
                 self.wait()
 
+        logger.info("Returning found data...")
+
+        all_items = []
+        for response in total_data:
+            all_items.extend(response)
+
+        if len(all_items) == 1:
+            return all_items[0]
+        else:
+            return all_items
+
+    def filtered_extraction(
+        self,
+        extraction_name: str,
+        endpoint: str,
+        path_dictionary: dict,
+        **kwargs,
+    ):
+        logger = logging.getLogger(f"{extraction_name.upper()}_EXTRACTION")
+        headers = {"Authorization": f"Bearer {self.token}"}
+
+        endpoint_format = endpoint.format(**path_dictionary)
+
+        start_page = 1
+        params = {"page[number]": start_page, "page[size]": 100}
+
+        if kwargs:
+            for key, value in kwargs.items():
+                if value is not None:
+                    params[key] = value
+
+        total_data = []
+        last_page = self.get_pages(f"{endpoint_format}", params=params)
+        total_pages = last_page
+
+        msg_fmt = "".join(endpoint_format.split("/")[-1].replace("_", " ").title())
+
+        if start_page == total_pages:
+            logger.info(
+                f"Extracting {msg_fmt} data from: {''.join(f'{key}: {value}' for key, value in path_dictionary.items())}..."
+            )
+            response = requests.get(
+                f"{REQ_URL}{endpoint_format}", headers=headers, params=params
+            )
+            response.raise_for_status()
+            total_data.append(response.json())
+
+        else:
+            while params["page[number]"] <= total_pages:
+                logger.info(
+                    f"Extracting {msg_fmt} data from: {''.join(f'{key}: {value}' for key, value in path_dictionary.items())} page {params['page[number]']}..."
+                )
+                response = requests.get(
+                    f"{REQ_URL}{endpoint_format}", headers=headers, params=params
+                )
+                response.raise_for_status()
+                total_data.append(response.json())
+                params["page[number]"] += 1
+                self.wait()
+
+        logger.info("Returning found data...")
+
         all_items = []
         for response in total_data:
             all_items.extend(response)
@@ -110,6 +174,13 @@ class FT_Extractor(FT_Client):
     def set_json(file_name: str, data: str) -> None:
         with open(f"{DATA_DIR}/{file_name}.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
+
+    @staticmethod
+    def get_json_data(file_name: str) -> str:
+        with open(f"{DATA_DIR}/{file_name}.json", "r") as f:
+            json_data = json.load(f)
+
+        return json_data
 
     @staticmethod
     def wait() -> None:
