@@ -1,40 +1,42 @@
-"""
-This file contains the process of initital extraction, in which we're going to get and create the .json files to the basic set of data that we need:
-
-- Cursus.
-- Campuses.
-
-Since these are the data that's not going to change and we need it to specify the :campus_id for example.
-"""
 import sys
 from pathlib import Path
-
 sys.path.append(str(Path(__file__).parent.parent.resolve()))
 
-import json
-from helpers.utils import get_all_cursus, get_campus
-from DF_Client import DF_Client
+import logging
+from FT_Extractor import FT_Extractor
 from environs import env
 
 env.read_env()
 
-BASE_DIR = Path(__file__).parent.parent.resolve()
-DATA_DIR = BASE_DIR / "data"
+FILTERS = {
+    'campus': {
+        "filter[city]": "Rio de Janeiro"
+    }
+}
+
+def initial_extraction():
+    logger = logging.getLogger("INITIAL_EXTRACTION")
+    extractor = FT_Extractor()
+
+    logger.info("Initiating Initial Extraction: Campus, and Cursus...")
+    
+    campus_data = extractor.basic_extraction(
+        'campus',
+        **FILTERS['campus']
+    )
+    cursus_data = extractor.basic_extraction(
+        'cursus',
+    )
+
+    extractor.set_json(
+        'campus_data',
+        campus_data
+    )
+
+    extractor.set_json(
+        'cursus_data',
+        cursus_data
+    )
 
 if __name__ == '__main__':
-    client = DF_Client()
-
-    cursus_data = get_all_cursus(
-        client.token
-    )
-
-    rio_data = get_campus(
-        client.token,
-        "Rio de Janeiro"
-    )
-
-    with open(f'{DATA_DIR}/cursus_data.json', 'w', encoding='utf-8') as f:
-        json.dump(cursus_data, f, ensure_ascii=False, indent=4)
-    
-    with open(f'{DATA_DIR}/rio_data.json', 'w', encoding='utf-8') as f:
-        json.dump(rio_data, f, ensure_ascii=False, indent=4)
+    initial_extraction()
