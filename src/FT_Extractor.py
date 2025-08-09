@@ -74,8 +74,6 @@ class FT_Extractor(FT_Client):
                 if value is not None:
                     params[key] = value
 
-        logger.warning(f"Passing these params to the Request: {params}")
-
         last_page = self.get_pages(endpoint, params)
         total_pages = last_page
 
@@ -98,8 +96,6 @@ class FT_Extractor(FT_Client):
                 total_data.append(response.json())
                 params["page[number]"] += 1
                 self.wait()
-
-        print(total_data)
 
         all_items = []
         for response in total_data:
