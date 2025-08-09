@@ -12,13 +12,13 @@ from environs import env
 env.read_env()
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 CLIENT_ID = env.str("CLIENT_ID")
 CLIENT_SECRET = env.str("CLIENT_SECRET")
 TOKEN_URL = env.str("TOKEN_URL")
+
 
 class FT_Client:
     """
@@ -39,6 +39,7 @@ class FT_Client:
             }
         _expires_in (float|None): Unix timestamp when the current token expires.
     """
+
     def __init__(self):
         """
         Initializes the client and fetches the first access token.
@@ -60,18 +61,18 @@ class FT_Client:
 
         self._logger.info("Initializing FT_Client...")
         self._fetch_token()
-    
+
     @property
     def token(self) -> str:
         """
         The current access token (auto-refreshes if expired).
-        
+
         Example:
             >>> client = FT_Client(...)
             >>> print(client.token)  # Auto-refreshes if needed
         """
         return self.get_token()
-    
+
     def get_token(self) -> str:
         """
         Retrieves a valid access token, automatically refreshing if expired.
@@ -91,7 +92,7 @@ class FT_Client:
             self._logger.warning("Token expired or missing. Refreshing...")
             self._fetch_token()
         return self._token_data["token"]
-    
+
     def _fetch_token(self) -> None:
         """
         Fetches a new access token from the OAuth2 server and stores it.
@@ -119,13 +120,14 @@ class FT_Client:
             token_info = response.json()
             self._token_data = {
                 "token": token_info["access_token"],
-                "metadata": token_info
+                "metadata": token_info,
             }
 
             self._expires_in = time.time() + token_info["expires_in"]
-            self._logger.info("Successfully fetched new token. "
-                            f"Expires in {token_info["expires_in"]} seconds.")
+            self._logger.info(
+                "Successfully fetched new token. "
+                f"Expires in {token_info['expires_in']} seconds."
+            )
         except requests.RequestException as e:
             self._logger.error(f"Token fetch failed: {str(e)}", exc_info=True)
             raise
-        
