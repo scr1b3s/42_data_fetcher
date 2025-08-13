@@ -5,7 +5,7 @@ sys.path.append(str(Path(__file__).parent.parent.resolve()))
 
 import json
 from helpers.utils import get_students_filter, get_campus
-from DF_Client import DF_Client
+from FT_Client import FT_Client
 import logging
 
 logging.basicConfig(
@@ -22,7 +22,7 @@ DATA_DIR = BASE_DIR / "data"
 
 if __name__ == '__main__':
     logger = logging.getLogger(__name__)
-    client = DF_Client()
+    client = FT_Client()
 
     campus = None
     with open(f'{DATA_DIR}/rio_data.json', 'r') as f:

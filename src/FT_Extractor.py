@@ -40,6 +40,8 @@ class FT_Extractor(FT_Client):
         headers = {"Authorization": f"Bearer {self.token}"}
         request_url = f"{self._base_url}{endpoint}"
 
+        logger.info(f"Checking pages for: {endpoint}...")
+
         response = requests.get(request_url, headers=headers, params=params)
         response.raise_for_status()
 
@@ -138,7 +140,7 @@ class FT_Extractor(FT_Client):
 
         if start_page == total_pages:
             logger.info(
-                f"Extracting {msg_fmt} data from: {''.join(f'{key}: {value}' for key, value in path_dictionary.items())}..."
+                f"Extracting {msg_fmt} data from {''.join(f'{key}: {value}' for key, value in path_dictionary.items())}..."
             )
             response = requests.get(
                 f"{REQ_URL}{endpoint_format}", headers=headers, params=params
