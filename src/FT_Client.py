@@ -49,14 +49,18 @@ class FT_Client:
 		Raises:
 			requests.HTTPError: If the initial token request fails.
 		"""
-		env.read_env()
-		
-		self._client_id = self._get_secret("CLIENT_ID")
-		self._client_secret = self._get_secret("CLIENT_SECRET")
-		self._token_url = env.str("TOKEN_URL")
 		self._token_data = None
 		self._expires_in = None
 		self._secrets_cache = {}
+		self._client_id = None
+		self._client_secret = None
+		self._token_url = None
+
+		env.read_env()
+
+		self._client_id = self._get_secret("CLIENT_ID")
+		self._client_secret = self._get_secret("CLIENT_SECRET")
+		self._token_url = env.str("TOKEN_URL")
 
 		logger.info("Initializing FT_Client...")
 		self._fetch_token()
@@ -185,7 +189,7 @@ class FT_Client:
 					logger.error(err_msg)
 					raise ValueError(err_msg)
 				else:
-					logger.info(f"Found secret '{secret_value}' in local environment.")
+					logger.info(f"Found secret '{secret_id}' in local environment.")
 			
 			self._secrets_cache[cache_key] = secret_value
 			return secret_value
