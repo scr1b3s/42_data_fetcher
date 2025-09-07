@@ -9,25 +9,20 @@ import requests
 import time
 import json
 from FT_Client import FT_Client
-from typing import Any
-
 from environs import env
-
-env.read_env()
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
-REQ_URL = env.str("REQ_URL")
 DATA_DIR = "data"
-
 
 class FT_Extractor(FT_Client):
     def __init__(self):
+        env.read_env()
         super().__init__()
 
-        self._base_url = REQ_URL
+        self._base_url = env.str("REQ_URL")
         self._extractor_logger = logging.getLogger("FT_Extractor")
         self._logger.info("Initializing FT_Extractor...")
 
