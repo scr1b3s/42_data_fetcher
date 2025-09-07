@@ -22,7 +22,7 @@ class FT_Extractor(FT_Client):
         env.read_env()
         super().__init__()
 
-        self._base_url = env.str("REQ_URL")
+        self._base_url = env.str("self._base_url")
         self._extractor_logger = logging.getLogger("FT_Extractor")
         self._logger.info("Initializing FT_Extractor...")
 
@@ -138,7 +138,7 @@ class FT_Extractor(FT_Client):
                 f"Extracting {msg_fmt} data from {''.join(f'{key}: {value}' for key, value in path_dictionary.items())}..."
             )
             response = requests.get(
-                f"{REQ_URL}{endpoint_format}", headers=headers, params=params
+                f"{self._base_url}{endpoint_format}", headers=headers, params=params
             )
             response.raise_for_status()
             total_data.append(response.json())
@@ -149,7 +149,7 @@ class FT_Extractor(FT_Client):
                     f"Extracting {msg_fmt} data from: {''.join(f'{key}: {value}' for key, value in path_dictionary.items())} page {params['page[number]']}..."
                 )
                 response = requests.get(
-                    f"{REQ_URL}{endpoint_format}", headers=headers, params=params
+                    f"{self._base_url}{endpoint_format}", headers=headers, params=params
                 )
                 response.raise_for_status()
                 total_data.append(response.json())
